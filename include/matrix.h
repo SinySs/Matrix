@@ -32,9 +32,7 @@ public:
     int get_rows() const {return n_rows_; };
     int get_cols() const {return n_cols_; };
 
-    void print() const {
-        std::cout << "cols: " << n_cols_<< " rows: " << n_rows_ << std::endl;
-    }
+    void print() const;
 
     proxy_row operator[](int row) const {
         return proxy_row{ data_ + (row - 1) * n_cols_ };
@@ -59,6 +57,18 @@ matrix<T>::matrix(const matrix<T> &rhs): matrix(rhs.get_rows(),rhs.get_rows()) {
             data_[i * n_cols_ + j] = rhs[i + 1][j + 1];
         }
     }
+}
+
+template<typename T>
+void matrix<T>::print() const {
+    std::cout << "cols: " << n_cols_<< " rows: " << n_rows_ << std::endl;
+    for(int i = 0; i < n_rows_; ++i) {
+        for(int j = 0; j < n_cols_; ++j) {
+            std::cout << data_[i * n_cols_ + j] << ' ';
+        }
+        std::cout << std::endl;
+    }
+
 }
 
 
