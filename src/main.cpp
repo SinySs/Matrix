@@ -11,6 +11,9 @@ int main() {
     matrix<double> mm(3, 3, bb);
 
     matrix<double> mmm = mm;
+    if(mmm == mm) {
+        std::cout << "I'm work" << std::endl;
+    }
 
     double  A = mmm[2][1];
     std::cout <<"A:" << A;
@@ -26,7 +29,13 @@ int main() {
     std::cout << a << std::endl;
 
 
-    m.print();
+
+    matrix<double> d(2, 2, aa);
+    d.print();
+    std::cout << "DET: " << d.determenant() << std::endl;
+
+
+
 
     return 0;
 }
