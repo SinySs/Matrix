@@ -26,7 +26,7 @@ class matrix {
 
 public:
     matrix() = default;
-    matrix(int col, int rows) : n_cols_(col), n_rows_(rows) { data_ = new T[col * rows]; };
+    matrix(int col, int rows, T data = T{});
     matrix(int col, int rows, const T *data);
 
     ~matrix() {
@@ -152,11 +152,71 @@ void matrix<T>::transpose() {
 }
 
 template<typename T>
-T matrix<T>::determenant() {
-    if(n_cols_ == 2 && n_rows_ == 2)
-        return data_[0] * data_[3] - data_[1] * data_[2];
+std::pair<matrix<T>, matrix<T>> lu_decomposition(matrix<T> &orig)
+{
+    if(orig.get_cols() != orig.get_rows()) {
+        assert("Number of rows != number of cols");
+    }
+    int n = orig.get_cols();
 
-    return 0;
+    matrix<T> L(n, n);
+    matrix<T> U(n, n);
+
+    for(int i = 1; i < n+1; ++i) {
+        for(int j = 1; j < n+1; ++j) {
+            if(i < j) {
+
+                double sum = 0.0;
+                for(int k = 1; k < i+1; ++k)
+                    sum += L[i][k] * U[k][j];
+
+                U[i][j] = (orig[i][j] - sum) / L[i][i];
+
+            } else if(i == j) {
+
+                double sum = 0.0;
+                for(int k = 1; k < j+1; ++k)
+                    sum += L[i][k] * U[k][j];
+
+                L[j][j] = 1.0;
+                U[j][j] = orig[j][j] - sum;
+
+            } else {
+                double sum = 0.0;
+                for(int k = 1; k < j+1; k++) {
+                    sum += L[i][k] * U[k][j];
+                }
+                L[i][j] = (orig[i][j] - sum) / U[j][j];
+
+            }
+        }
+    }
+
+    return std::make_pair(L, U);
+}
+
+template<typename T>
+T matrix<T>::determenant() {
+    auto LU = lu_decomposition(*this);
+
+    matrix<T> L = LU.first;
+    matrix<T> U = LU.second;
+
+    T determ = 1.0;
+
+    for(int i = 1; i < this->n_cols_ + 1; ++i) {
+        determ *= U[i][i];
+    }
+
+    return determ;
+}
+
+template<typename T>
+matrix<T>::matrix(int col, int rows, T data): n_cols_(col), n_rows_(rows) {
+    data_ = new T[col * rows];
+    for(int i = 0; i < rows * col; ++i) {
+        data_[i] = data;
+    }
 }
 
 template<typename T>
