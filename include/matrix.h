@@ -152,12 +152,12 @@ void matrix<T>::transpose() {
 }
 
 template<typename T>
-std::pair<matrix<T>, matrix<T>> lu_decomposition(matrix<T> &orig)
+std::pair<matrix<T>, matrix<T>> lu_decomposition(matrix<T> &matr)
 {
-    if(orig.get_cols() != orig.get_rows()) {
+    if(matr.get_cols() != matr.get_rows()) {
         assert("Number of rows != number of cols");
     }
-    int n = orig.get_cols();
+    int n = matr.get_cols();
 
     matrix<T> L(n, n);
     matrix<T> U(n, n);
@@ -170,7 +170,7 @@ std::pair<matrix<T>, matrix<T>> lu_decomposition(matrix<T> &orig)
                 for(int k = 1; k < i+1; ++k)
                     sum += L[i][k] * U[k][j];
 
-                U[i][j] = (orig[i][j] - sum) / L[i][i];
+                U[i][j] = (matr[i][j] - sum) / L[i][i];
 
             } else if(i == j) {
 
@@ -179,14 +179,14 @@ std::pair<matrix<T>, matrix<T>> lu_decomposition(matrix<T> &orig)
                     sum += L[i][k] * U[k][j];
 
                 L[j][j] = 1.0;
-                U[j][j] = orig[j][j] - sum;
+                U[j][j] = matr[j][j] - sum;
 
             } else {
                 double sum = 0.0;
                 for(int k = 1; k < j+1; k++) {
                     sum += L[i][k] * U[k][j];
                 }
-                L[i][j] = (orig[i][j] - sum) / U[j][j];
+                L[i][j] = (matr[i][j] - sum) / U[j][j];
 
             }
         }
@@ -196,13 +196,54 @@ std::pair<matrix<T>, matrix<T>> lu_decomposition(matrix<T> &orig)
 }
 
 template<typename T>
+int reorder(matrix<T>& matrix, int row, int col) {
+    int n = matrix.get_rows();
+    if (matrix[row][col] != 0) {
+        return 0;
+    }
+    for (int i = row + 1; i < n + 1; ++i) {
+        if (matrix[i][col] != 0) {
+            for (int j = 1; j < n + 1; ++j) {
+                std::swap(matrix[row][j], matrix[i][j]);
+            }
+            return i - row;
+        }
+    }
+    // zero col -> det = 0
+    return -1;
+}
+
+template<typename T>
+int remove_diagonal_zeros(matrix<T>& matrix) {
+
+    int n = matrix.get_rows();
+    int reorders_n = 0;
+
+    for (int current_col = 1; current_col < n; ++current_col) {
+
+        int degenerate = reorder(matrix, current_col, current_col);
+        if(degenerate == -1 )
+            return -1;
+        reorders_n += degenerate;
+
+    }
+    return reorders_n;
+
+}
+
+template<typename T>
 T matrix<T>::determenant() {
-    auto LU = lu_decomposition(*this);
+
+    int coef = remove_diagonal_zeros(*this);
+    auto LU  = lu_decomposition(*this);
 
     matrix<T> L = LU.first;
     matrix<T> U = LU.second;
 
-    T determ = 1.0;
+    T determ = -1.0;
+    if(coef % 2 == 0) {
+         determ = 1.0;
+    }
 
     for(int i = 1; i < this->n_cols_ + 1; ++i) {
         determ *= U[i][i];
