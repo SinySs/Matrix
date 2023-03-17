@@ -1,24 +1,25 @@
 #include <iostream>
 #include "matrix.h"
-#include <vector>
 
-int main() {
+int main(int argc, char **argv)
+{
+    int n;
+    std::cin >> n;
+    assert(std::cin.good());
 
-    double aa[] = {1, 2, 3, 4};
-    double bb[] = {1, 2, 3, 4, 5, 6, 7, 8,9};
+    std::vector<double> elems;
 
-    matrix<double> m(2, 2, aa);
-    matrix<double> mm(3, 3, bb);
+    for(int i = 0; i < n * n; ++i) {
+        double q;
+        std::cin >> q;
+        assert(std::cin.good());
 
+        elems.push_back(q);
+    }
 
-    matrix<double> d(2, 2, aa);
+    matrix<double> matr(n, n, elems.begin(), elems.end());
 
-
-    std::cout << "DET: " << d.determenant() << std::endl;
-
-
-
-
+    std::cout << matr.determenant();
 
     return 0;
 }

@@ -1,9 +1,7 @@
-//
-// Created by Дмитрий on 18.11.2022.
-//
 #pragma once
 #include <iostream>
 #include <cassert>
+#include <vector>
 
 #define PRECISION 1e-4
 
@@ -28,6 +26,9 @@ public:
     matrix() = default;
     matrix(int col, int rows, T data = T{});
     matrix(int col, int rows, const T *data);
+
+    template<typename Iter>
+    matrix(int cols, int rows, Iter begin, Iter end);
 
     ~matrix() {
         delete data_;
@@ -112,6 +113,7 @@ matrix<T> &matrix<T>::operator*=(const int n) {
             data_[i * n_cols_ + j] *= n;
         }
     }
+
     return *this;
 }
 
@@ -133,6 +135,7 @@ matrix<T> &matrix<T>::operator-=(const matrix &rhs) {
             data_[i * n_cols_ + j] -= rhs[i + 1][j + 1];
         }
     }
+
     return *this;
 }
 
@@ -147,7 +150,6 @@ void matrix<T>::transpose() {
         }
         n++;
     }
-
 
 }
 
@@ -183,9 +185,9 @@ std::pair<matrix<T>, matrix<T>> lu_decomposition(matrix<T> &matr)
 
             } else {
                 double sum = 0.0;
-                for(int k = 1; k < j+1; k++) {
+                for(int k = 1; k < j+1; k++)
                     sum += L[i][k] * U[k][j];
-                }
+
                 L[i][j] = (matr[i][j] - sum) / U[j][j];
 
             }
@@ -201,6 +203,7 @@ int reorder(matrix<T>& matrix, int row, int col) {
     if (matrix[row][col] != 0) {
         return 0;
     }
+
     for (int i = row + 1; i < n + 1; ++i) {
         if (matrix[i][col] != 0) {
             for (int j = 1; j < n + 1; ++j) {
@@ -258,6 +261,21 @@ matrix<T>::matrix(int col, int rows, T data): n_cols_(col), n_rows_(rows) {
     for(int i = 0; i < rows * col; ++i) {
         data_[i] = data;
     }
+}
+
+template<typename T>
+template<typename Iter>
+matrix<T>::matrix(int cols, int rows, Iter begin, Iter end): matrix(cols, rows) {
+    int size = std::distance(begin, end);
+
+    assert(rows * cols == size);
+
+    for(int i = 0; i < size; ++i) {
+            data_[i] = *begin;
+            begin++;
+    }
+
+
 }
 
 template<typename T>
