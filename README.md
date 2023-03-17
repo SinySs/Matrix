@@ -7,7 +7,7 @@ Output: matrix determinant.
 `cmake -S ./ -B build`  
 `cd build`  
 `make`
-## Build unit tests
+## Build tests
 `cd tests`   
 `make` to make tests  
 `make huge` to make huge test 
