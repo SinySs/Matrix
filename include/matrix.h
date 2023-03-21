@@ -3,6 +3,8 @@
 #include <cassert>
 #include <vector>
 
+#include "matrix_exception.h"
+
 #define PRECISION 1e-4
 
 template<typename T>
@@ -14,12 +16,19 @@ class matrix {
         T* p_row;
 
         T& operator [](int col){
+            if(col < 0)
+                throw("Operator [] received a negative number input");
             return p_row[col - 1];
         }
         const T& operator [](int col) const{
+            if(col < 0)
+                throw("Operator [] received a negative number input");
             return p_row[col - 1];
         }
     };
+
+
+    void swap(matrix<T> &rhs) noexcept;
 
 
 public:
@@ -52,6 +61,8 @@ public:
     void print() const;
 
     proxy_row operator[](int row) const {
+        if(row < 0)
+            throw("Operator [] received a negative number input");
         return proxy_row{ data_ + (row - 1) * n_cols_ };
     }
 };
@@ -68,7 +79,6 @@ matrix<T>::matrix(int col, int rows, const T* data): matrix(col, rows) {
 
 template<typename T>
 matrix<T>::matrix(const matrix<T> &rhs): matrix(rhs.get_rows(),rhs.get_rows()) {
-    //assert(n_cols_ >= 0 || n_rows_ >= 0);
     for(int i = 0; i < n_rows_; ++i) {
         for(int j = 0; j < n_cols_; ++j) {
             data_[i * n_cols_ + j] = rhs[i + 1][j + 1];
@@ -93,15 +103,9 @@ matrix<T> &matrix<T>::operator=(const matrix &rhs) {
     if(this == &rhs)
         return *this;
 
-    n_cols_ = rhs.get_cols();
-    n_rows_ = rhs.get_rows();
-    data_ = new T[n_cols_ * n_rows_];
+    matrix<T> tmp(rhs);
 
-    for(int i = 0; i < n_rows_; ++i) {
-        for(int j = 0; j < n_cols_; ++j) {
-            data_[i * n_cols_ + j] = rhs[i + 1][j + 1];
-        }
-    }
+    this->swap(tmp);
 
     return *this;
 }
@@ -154,10 +158,9 @@ void matrix<T>::transpose() {
 }
 
 template<typename T>
-std::pair<matrix<T>, matrix<T>> lu_decomposition(matrix<T> &matr)
-{
+std::pair<matrix<T>, matrix<T>> lu_decomposition(matrix<T> &matr) {
     if(matr.get_cols() != matr.get_rows()) {
-        assert("Number of rows != number of cols");
+        throw("Number of rows != number of cols");
     }
     int n = matr.get_cols();
 
@@ -225,7 +228,7 @@ int remove_diagonal_zeros(matrix<T>& matrix) {
     for (int current_col = 1; current_col < n; ++current_col) {
 
         int degenerate = reorder(matrix, current_col, current_col);
-        if(degenerate == -1 )
+        if(degenerate == -1)
             return -1;
         reorders_n += degenerate;
 
@@ -238,6 +241,9 @@ template<typename T>
 T matrix<T>::determenant() {
 
     int coef = remove_diagonal_zeros(*this);
+    if(coef == -1)
+        return 0;
+
     auto LU  = lu_decomposition(*this);
 
     matrix<T> L = LU.first;
@@ -267,14 +273,22 @@ template<typename T>
 template<typename Iter>
 matrix<T>::matrix(int cols, int rows, Iter begin, Iter end): matrix(cols, rows) {
     int size = std::distance(begin, end);
-
-    assert(rows * cols == size);
+    if(rows * cols != size)
+        throw("Invalid constructor parametrs: matrix size != cols * rows");
 
     for(int i = 0; i < size; ++i) {
             data_[i] = *begin;
             begin++;
     }
 
+
+}
+
+template<typename T>
+void matrix<T>::swap(matrix<T> &rhs) noexcept {
+    std::swap(n_cols_, rhs.n_cols_);
+    std::swap(n_rows_, rhs.n_rows_);
+    std::swap(data_, rhs.data_);
 
 }
 

@@ -17,9 +17,13 @@ int main(int argc, char **argv)
         elems.push_back(q);
     }
 
-    matrix<double> matr(n, n, elems.begin(), elems.end());
+    try {
+        matrix<double> matr(n, n, elems.begin(), elems.end());
 
-    std::cout << matr.determenant();
+        std::cout << matr.determenant() << std::endl;
+    } catch (matrix_exception &e) {
+        std::cout << e.what() << std::endl;
+    }
 
     return 0;
 }
